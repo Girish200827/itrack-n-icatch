@@ -82,6 +82,13 @@ def createNewSketch():
     
     sketch_creating_name = input("Please enter name of the NEW SKETCH: ")
     
+    if sketch_creating_name.isdigit():
+        print("Invaild sketch name. Please choose a non-numeric sketch name.")
+        chdir("..")
+        return None
+    else:
+        pass
+    
     system(f"arduino-cli sketch new {sketch_creating_name}")
     
     return chdir(".."), searchAllSketchesAvailable()
@@ -275,7 +282,7 @@ def compileSketch():
     global sketch_selected
     global sketches_dir_name
     
-    sketch_path = f"{sketches_dir_name}/{sketch_selected}"
+    sketch_path = f"{sketches_dir_name}\{sketch_selected}"
     
     system(f"arduino-cli compile -b {fqbn_string} {sketch_path}")
     
