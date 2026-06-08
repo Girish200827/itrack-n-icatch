@@ -15,7 +15,6 @@ import re
 import sys
 import json
 import uuid
-from pathlib import Path
 from datetime import datetime
 from os import system, getcwd, scandir, chdir, path
 
@@ -135,6 +134,7 @@ def restoreSketch():
     # trash folder back inside the `Sketches` directory
     
     updated_sketch_trashed = {}
+    sketches_available_to_restore = []
     
     if path.getsize("sketch_trashed.json") > 0:
         try:
@@ -143,10 +143,13 @@ def restoreSketch():
                 
             if (bool(loaded_sketch_trashed)):
                 print("Sketches currently in recycling bin: \n")
-                s = "Index |"
-                t = "Days Since Sketch Trashed |"
+                s = "Index"
+                t = "Days Since Sketch Trashed"
                 a = "Sketch Path"
-                print(f"{s:<20} {t:<20} {a}")
+                print(f"    {s:<20} {t:<24} {a}")
+                
+                updated_sketch_trashed.clear()
+                updated_unique_id = 1
         
                 try:
                     for idx, (unique_id, details) in enumerate(loaded_sketch_trashed.items(), start=1):
@@ -160,7 +163,6 @@ def restoreSketch():
                             sketch_trashed_path = str(details["path"].lower())
                             if isinstance(original_path, str) == isinstance(sketch_trashed_path, str):
                                 found_trashed_sketch = True
-                                sketches_available_to_restore = []
                                 sketches_available_to_restore.append(details["path"])
                                 break
                             else:
@@ -171,10 +173,19 @@ def restoreSketch():
                             current_time = datetime.now()
                             days_since_trashed_sketch = (current_time.date() - date_sketch_trashed.date()).days
                             
-                            tem_idx = f"{idx}]"
-                            print(f"    [{idx:<20} {str(days_since_trashed_sketch):<20} {details["path"]}")
+                            temp_idx = f"{idx}]"
+                            print(f"    [{temp_idx:<19} {str(days_since_trashed_sketch):<26} {path.split(details["path"])[1]}")
+                            
+                            if isinstance(loaded_sketch_trashed, dict) and "date" in loaded_sketch_trashed[f"{unique_id}"] and "path" in loaded_sketch_trashed[f"{unique_id}"]:
+                                updated_sketch_trashed[updated_unique_id] = {
+                                    "date": loaded_sketch_trashed[f"{unique_id}"]["date"],
+                                    "path": loaded_sketch_trashed[f"{unique_id}"]["path"]
+                                }
+                            
+                            updated_unique_id += 1
+                            
                         else:
-                            updated_sketch_trashed = loaded_sketch_trashed.pop(idx)
+                            loaded_sketch_trashed = loaded_sketch_trashed.pop(idx)
                     sketch_restoring_name = input("Please enter the number of the sketch path to RESTORE: ")
                 
                     if not sketch_restoring_name.isdigit():
@@ -188,7 +199,6 @@ def restoreSketch():
                         
                         r = list(winshell.recycle_bin())
                         paths = [re.search(r'([A-Za-z]:\\[^\r\n<>:"|?*]+)', str(item.original_filename)).group(1).strip().split(" ")[0] for item in r]
-                        print(paths[1])
                         path_to_go = sketch_path_selected.replace('\\\\', '\\')                         
                         index = paths.index(path_to_go) 
                         
@@ -196,7 +206,8 @@ def restoreSketch():
                             winshell.undelete(r[index].original_filename())
                   
                             print(f"Restored the sketch: {sketch_path_selected}")
-                            updated_sketch_trashed = loaded_sketch_trashed.pop(idx)
+                            value = updated_sketch_trashed.pop(sketch_restoring_name)
+                            
                         except Exception as e:
                             print(e)
                     else:
@@ -213,15 +224,12 @@ def restoreSketch():
     else:
         print("Error prasing an empty json file.")
     
-    if (bool(updated_sketch_trashed)):
-        try:
-            with open("sketch_trashed.json", "w", encoding="utf-8") as f:
-                f.truncate() # clear the file's content
-                json.dump(updated_sketch_trashed, f, indent=4, ensure_ascii=False)
-        except OSError as e:
-            print(e)
-    else:
-        return None
+    try:
+        with open("sketch_trashed.json", "w", encoding="utf-8") as f:
+            f.truncate() # clear the file's content
+            json.dump(updated_sketch_trashed, f, indent=4, ensure_ascii=False)
+    except OSError as e:
+        print(e)
     
 def selectSketch():
     # search the sketches availables
@@ -282,7 +290,7 @@ def compileSketch():
     global sketch_selected
     global sketches_dir_name
     
-    sketch_path = f"{sketches_dir_name}\{sketch_selected}"
+    sketch_path = f"{sketches_dir_name}\\{sketch_selected}"
     
     system(f"arduino-cli compile -b {fqbn_string} {sketch_path}")
     
