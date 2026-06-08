@@ -57,6 +57,7 @@ def searchAllSketchesAvailable():
     # and show all the sketches available
     
     global sketches_dir_name
+    global sketch_names
     
     sketch_names.clear()
     
@@ -91,7 +92,7 @@ def createNewSketch():
     system(f"arduino-cli sketch new {sketch_creating_name}")
     
     return chdir(".."), searchAllSketchesAvailable()
-
+    
 def sendSketchToRecycleBin():
     # Move the sketch directory to trash folder
     # inside the `Sketches` directory
@@ -230,14 +231,34 @@ def restoreSketch():
             json.dump(updated_sketch_trashed, f, indent=4, ensure_ascii=False)
     except OSError as e:
         print(e)
+        
+def editSketch():
+    # select the sketch to edit
+    # on the powershell
+    
+    global sketch_names
+    global sketch_dir_name
+    
+    sketch_selected = input("Please enter the sketch number to EDIT: ")
+    
+    if not sketch_selected.isdigit():
+        print("Invalid Selection. Please select the number of the sketch.")
+        
+    sketch_selected = int(sketch_selected)
+        
+    if 1 <= sketch_selected <= len(sketch_names):
+        sketch_name_selected = sketch_names[sketch_selected - 1]
+            
+        system(f"EDIT {sketches_dir_name}\\{sketch_name_selected}\\{sketch_name_selected}.ino")
+    else:
+        print("\nInvalid choice. Please select a valid option.")
     
 def selectSketch():
     # search the sketches availables
     # and select the default sketch
     
     global sketch_selected
-    
-    searchAllSketchesAvailable() # get available sketches names
+    global sketch_names
     
     print("\nSelect Sketch:")
     
@@ -359,4 +380,5 @@ def main():
             print("\nInvalid choice. Please select a valid menu option.")
         
 if __name__ == "__main__":
+    searchAllSketchesAvailable() # get available sketches names / can run this in thread
     main()
