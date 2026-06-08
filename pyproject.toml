@@ -1,0 +1,11 @@
+[project]
+name = "itrack-n-icatch-arduino"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pywin32>=312",
+    "send2trash>=2.1.0",
+    "winshell>=0.6",
+]
