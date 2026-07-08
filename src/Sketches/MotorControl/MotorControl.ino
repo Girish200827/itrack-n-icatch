@@ -1,62 +1,76 @@
-// Arduino Uno 12V DC Stepper Motor
-// Receives commands from TrackObject algorithm and controls the motor
+// Motor Position Control using Encoder Feedback 
+// Arduino Uno + 12V DC motors with encoders + ESP-01S
+//  
+// Robot moves until encoder count reaches 1000
+// then stops automatically.
 //
 // Wiring:
 // Yellow --> RPWM
 // Red --> LPWM
-// 
+// Green --> Channel B
+// Yellow --> Channel A
 
 
-// Motor A(1) PWM Pins
-const int RPWM1 = 5;
-const int LPWM1 = 6;
+// Motor PWM Pins
+const int RPWM1 = 5, LPWM1 = 6; //  A(1) top 
+const int RPWM2 = 9, LPWM2 = 10; // B(2) bottom-right
+const int RPWM3 = 3, LPWM3 = 11; // C(3) bottom-left 
 
-// Motor B(2) PWM Pins
-const int RPWM2 = 9;
-const int LPWM2 = 10;
+const int SPD     = 255; // set to max speed
+const int RUN_MS  = 1500; // more will execute the test for longer
+const int PAUSE_MS = 0; // no pause
 
-// Motor C(3) PWM Pins
-const int RPWM3 = 3;
-const int LPWM3 = 11;
+void motora(int fwd, int rev) { analogWrite(RPWM1, fwd); analogWrite(LPWM1, rev); }
+void motorb(int fwd, int rev) { analogWrite(RPWM2, fwd); analogWrite(LPWM2, rev); }
+void motorc(int fwd, int rev) { analogWrite(RPWM3, fwd); analogWrite(LPWM3, rev); }
+
+void stopall() {
+    motora(0, 0);
+    motorb(0, 0);
+    motorc(0, 0);
+    delay(PAUSE_MS);
+}
+
+void moveforward()      { motora(0,   SPD); motorb(SPD, 0);   motorc(SPD, 0);   }
+void movebackward()     { motora(SPD, 0);   motorb(0,   SPD); motorc(0,   SPD); }
+void moveleft()         { motora(SPD, 0);   motorb(SPD, 0);   motorc(0,   SPD); }
+void moveright()        { motora(0,   SPD); motorb(0,   SPD); motorc(SPD, 0);   }
+void diagfwdleft()      { motora(0,   0);   motorb(SPD, 0);   motorc(0,   SPD); }
+void diagfwdright()     { motora(0,   0);   motorb(0,   SPD); motorc(SPD, 0);   }
+void diagbwdleft()      { motora(SPD, 0);   motorb(0,   SPD); motorc(0,   0);   }
+void diagbwdright()     { motora(0,   SPD); motorb(0,   0);   motorc(SPD, 0);   }
+void rotatecw()         { motora(SPD, 0);   motorb(SPD, 0);   motorc(SPD, 0);   }
+void rotateccw()        { motora(0, SPD);   motorb(0,   SPD); motorc(0,   SPD); }
+
+void runtest(const char* name, void (*fn)()) {
+    Serial.print("Moving: ");
+    Serial.println(name);
+    fn();
+    delay(RUN_MS);
+    stopall();
+}
 
 void setup() {
-
-    // Motor A(1) Pin setup
-    pinMode(RPWM1, OUTPUT);
-    pinMode(LPWM1, OUTPUT);
-    
-    // Motor A(2) Pin setup
-    pinMode(RPWM2, OUTPUT);
-    pinMode(LPWM2, OUTPUT);
-    
-    // Motor A(3) Pin setup
-    pinMode(RPWM3, OUTPUT);
-    pinMode(LPWM3, OUTPUT);
+    Serial.begin(115200);
+    pinMode(RPWM1, OUTPUT); pinMode(LPWM1, OUTPUT);
+    pinMode(RPWM2, OUTPUT); pinMode(LPWM2, OUTPUT);
+    pinMode(RPWM3, OUTPUT); pinMode(LPWM3, OUTPUT);
+    stopall();
+    delay(2000);
+    Serial.println("Starting motion test...");
 }
 
 void loop() {
-    
-    // Run the motor 360 degrees clockwise
-    analogWrite(RPWM1, 255);
-    analogWrite(LPWM1, 0);
-    analogWrite(RPWM2, 255);
-    analogWrite(LPWM2, 0);
-    analogWrite(RPWM3, 255);
-    analogWrite(LPWM3, 0);
-    delay(10);
-    
-    // Run the motor 360 degrees counter-closkwise
-    analogWrite(RPWM1, 0);
-    analogWrite(LPWM1, 255);
-    analogWrite(RPWM2, 0);
-    analogWrite(LPWM2, 255);
-    analogWrite(RPWM2, 0);
-    analogWrite(LPWM2, 255);
-    delay(10);
-    
-    // Stop the motor and exit the loop
-    analogWrite(LPWM1, 0);
-    analogWrite(LPWM2, 0);
-    analogWrite(LPWM3, 0);
-    exit(0);
+    runtest("Diag fwd-left",   diagfwdleft);
+    runtest("Diag fwd-right",  diagfwdright);
+    runtest("Diag bwd-left",   diagbwdleft);
+    runtest("Diag bwd-right",  diagbwdright);
+    runtest("Rotate CW",       rotatecw);
+    runtest("Rotate CCW",      rotateccw);
+    runtest("Forward",         moveforward);
+    runtest("Backward",        movebackward);
+    runtest("Left",            moveleft);
+    runtest("Right",           moveright);
+    Serial.println("Test complete. Restarting in 3s...");
+    delay(3000);
 }

@@ -243,6 +243,7 @@ def editSketch():
     
     if not sketch_selected.isdigit():
         print("Invalid Selection. Please select the number of the sketch.")
+        return None
         
     sketch_selected = int(sketch_selected)
         
@@ -252,6 +253,51 @@ def editSketch():
         system(f"EDIT {sketches_dir_name}\\{sketch_name_selected}\\{sketch_name_selected}.ino")
     else:
         print("\nInvalid choice. Please select a valid option.")
+        
+def editArduinoConfig():
+    # Edit the configuration file
+    # for the arduino-cli
+    
+    configuration_file_path = r"C:\Users\gsnis\AppData\Local\Arduino15\arduino-cli.yaml"
+    
+    system(f"EDIT {configuration_file_path}")
+    
+    return None
+    
+def arduinoLib():
+    # show the libraries availables
+    # and show / install / remove / update a library
+    
+    print("\nAvailable Libaries:")
+    
+    system("arduino-cli lib list")
+        
+    print("\n    press i + enter to install a new library")
+    print("    press r + enter to remove a library")
+    print("    press u + enter to update a library")
+    print("    press b + enter to update a library")
+    
+    sketch_selected = input("")
+    
+    if not (
+        sketch_selected.isdigit() 
+        or sketch_selected == "i"
+        or sketch_selected == "r"
+        or sketch_selected == "u"
+        or sketch_selected == "b"
+    ):
+        raise ValueError
+    
+    if sketch_selected == "i":
+        pass
+    elif sketch_selected == "r":
+        pass
+    elif sketch_selected == "u":
+        pass
+    elif sketch_selected == "b":
+        return None
+    else:
+        return None
     
 def selectSketch():
     # search the sketches availables
@@ -352,10 +398,12 @@ def main():
     # list of tuples (function description, function name)
     menu_items = [
         ("show all connected boards", showDevicesConnected),
-        ("edit / create / delete a sketch", selectSketch),
+        ("select / edit / create / delete a sketch", selectSketch),
+        ("show / add / remove arduino libraries", arduinoLib),
         ("compile the current sketch selected", compileSketch),
         ("upload the current sketch selected", uploadSketch),
         ("run itrack-n-icatch", itrackNicatch),
+        ("edit arduino configurations", editArduinoConfig),
         ("clear the console", clear),
         ("quit this program", quit)
     ]
